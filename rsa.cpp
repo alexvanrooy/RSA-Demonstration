@@ -1,17 +1,16 @@
 /*
- * rsa.c
+ * main.c
  *
  *  Created on: Nov 5, 2022
  *      Author: seed
  */
-
 /*
- * FEATURES THAT NEED TO BE ADDED:
- * TODO: Ask user to either Encrypt or Decrypt
- * 		-if encrypt then give the option to generate new keys or use existing keys
- * 		-if decrypt then ask them to add the relevant information
- * TODO: Implement main loop so the user can keep encrypting and decrypting
+ * Restrictions:
+ * 		large prime numbers p and q are 128 bits
  *
+ * 		the public key n is 32 bytes
+ *
+ * 		users can only encrypt and decrypt data that is 32 bytes long
  */
 
 #include <stdio.h>
@@ -30,6 +29,11 @@ BIGNUM *p,*q,*n, *phi, *e, *d;
 void readInput(char* user_input, int key_size){
 
 	cin.get(user_input,key_size + 1);
+
+	//clear input buffer
+	int c;
+	while ((c = getchar()) != '\n' && c != EOF) { }
+
 	 return;
 }
 
@@ -48,7 +52,6 @@ void setupRSA(){
 	q = BN_new();
 
 	// Generate a random prime number of 128 bits
-	//TODO: Allow for different bit sizes
 	BN_generate_prime_ex(p, 128, 1, NULL, NULL, NULL);
 	BN_generate_prime_ex(q, 128, 1, NULL, NULL, NULL);
 
@@ -105,7 +108,8 @@ char* textToHex(char* text){
 
 char* hexToText(char* decryptedHex){
 	//https://www.geeksforgeeks.org/convert-hexadecimal-value-string-ascii-value-string/
-	char* decryptedPlaintext = (char*) malloc(BN_num_bytes(n));
+	//char* decryptedPlaintext = (char*) malloc(BN_num_bytes(n));
+	char* decryptedPlaintext = (char*) malloc(32);
 	size_t i;
 	int j;
 
@@ -167,9 +171,69 @@ char* decryptCipher(BIGNUM* ciphertext){
 	return hexToText(decryptedHex);
 }
 
+char* decryptCipherHex(char* ciphertext,char* publickey, char* privatekey){
+	BIGNUM *privatekeyBN = BN_new();
+	BIGNUM *publickeyBN = BN_new();
+	BIGNUM *ciphertextBN = BN_new();
+	BIGNUM *decryptedBN = BN_new();
+	BN_hex2bn(&ciphertextBN,ciphertext);
+	BN_dec2bn(&privatekeyBN,privatekey);
+	BN_dec2bn(&publickeyBN,publickey);
+
+
+	BN_mod_exp(decryptedBN, ciphertextBN, privatekeyBN, publickeyBN, ctx);	//gets the BN representation of the decryption
+	//printBN("Decryption as a BN: ",decrpytedtext);
+
+	char* decryptedHex = BN_bn2hex(decryptedBN);		//gets the HEX representation of the decryption
+	printf("Decryption in HEX form: %s\n",decryptedHex);
+
+	return hexToText(decryptedHex);
+}
+
 int main(){
+	int user_selection;
 	printf("RSA Encryption & Decryption\n");
 	printf("---------------------------\n");
+	printf("\n");
+
+	printf("Please Select An Option:\n");
+	printf("	1. Encrypt\n");
+	printf("	2. Decrypt\n");
+	printf("Enter Your Selection: ");
+	scanf("%d",&user_selection);
+
+	//clear input buffer
+	int c;
+	while ((c = getchar()) != '\n' && c != EOF) { }
+
+	if(user_selection != 1 and user_selection != 2 ){
+		printf("Invalid Input\n");
+		exit(1);
+	}
+
+	//user selects decryption
+	if(user_selection == 2){
+		printf("\n");
+		printf("Decrypt\n");
+		printf("-------\n");
+
+		//need to provide the encrypted cipher text
+		char* encryptedCipher = (char*) malloc((sizeof(int) * 32)/2 + 1);
+		printf("Enter ciphertext you wish to decrypt (max size of 64 bytes): ");
+		readInput(encryptedCipher, (sizeof(int) * 32)/2 + 1);
+
+		char* publicKey = (char*) malloc(sizeof(int) * 32);
+		printf("Enter the public key (n) (max size of 32 bytes): ");
+		readInput(publicKey, sizeof(int) * 32);
+
+		char* privateKey = (char*) malloc(sizeof(int) * 32);
+		printf("Enter the private key (d) (max size of 32 bytes): ");
+		readInput(privateKey, sizeof(int) * 32);
+
+		char* cipherDecrypted = decryptCipherHex(encryptedCipher, publicKey, privateKey);
+		printf("The decrypted message is: %s\n",cipherDecrypted);
+		return 1;
+	}
 	printf("\n");
 
 
@@ -217,9 +281,9 @@ int main(){
 	printf("The decrypted message is: %s\n",decryptedPlaintext);
 
 
+
 	return 1;
 }
-
 
 
 
