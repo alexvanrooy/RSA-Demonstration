@@ -1,4 +1,4 @@
-# RSA Encryption and Decryption Demonstration
+# RSA Demonstration
  RSA encryption and decryption
 
 Runs on the Linux operating system
