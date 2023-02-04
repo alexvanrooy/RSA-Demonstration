@@ -1,4 +1,4 @@
-# cp460_rsa
+# RSA Encryption and Decryption Demonstration
  RSA encryption and decryption
 
 Runs on the Linux operating system
