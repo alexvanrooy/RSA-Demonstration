@@ -1,8 +1,8 @@
 /*
- * main.c
+ * rsa.cpp
  *
  *  Created on: Nov 5, 2022
- *      Author: seed
+ *      Author: alex van rooy
  */
 /*
  * Restrictions:
